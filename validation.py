@@ -11,7 +11,6 @@ t = pd.read_excel (r'D:\Params.xlsx', header = None, sheet_name = 't')
 t = t.to_numpy().reshape((61,))
 data = pd.read_excel (r'D:\Params.xlsx', header = None, sheet_name = 'data')
 data = data.to_numpy()
-data = data[1:,:]
 u = np.ones((1, 61))
 lengthu = 1
 N = data.shape[0]
