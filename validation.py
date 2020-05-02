@@ -7,9 +7,9 @@ Created on Fri May  1 11:12:06 2020
 
 import pandas as pd
 import numpy as np
-t = pd.read_excel (r't.xlsx', header = None, sheet_name = 't')
+t = pd.read_excel (r'Params.xlsx', header = None, sheet_name = 't')
 t = t.to_numpy().reshape((61,))
-data = pd.read_excel (r'data.xlsx', header = None, sheet_name = 'data')
+data = pd.read_excel (r'Params.xlsx', header = None, sheet_name = 'data')
 data = data.to_numpy()
 u = np.ones((1, 61))
 lengthu = 1
