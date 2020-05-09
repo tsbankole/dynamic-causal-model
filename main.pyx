@@ -27,16 +27,28 @@ cdef double [:,::1] creatematrix(double [:,::1] input1, double [::1,:] input2, d
             output[pp,qq] = m*(input1[pp,qq] + input2[pp,qq])
     return output   
 
-def main_func():
+def main_func(data_c_in = None, t_in = None, u_in = None, lengthu_in = None):
     #%% Preliminaries
-    loadeddata = np.load('file.npz')
+    
     cdef double [:] t
-    cdef double [::1, :] data
-    cdef double [:, ::1] u
+    cdef double [::1, :] data 
+    cdef double [:, ::1] u 
     cdef int lengthu
     
-    t, data_c, u, lengthu = loadeddata['t'], loadeddata['y'], loadeddata['u'], loadeddata['lenu'] 
-    data = np.asfortranarray(data_c)
+    if data_c_in is None or t_in is None or u_in is None or lengthu_in is None:
+        loadeddata = np.load('file.npz')
+        t_in, data_c_in, u_in, lengthu_in = loadeddata['t'], loadeddata['y'], loadeddata['u'], loadeddata['lenu']
+        t = t_in
+        data = np.asfortranarray( data_c_in )
+        u = u_in
+        lengthu = lengthu_in        
+    else:
+        t = t_in
+        data = np.asfortranarray( data_c_in )
+        u = u_in
+        lengthu = lengthu_in       
+    
+         
     cdef int N = data.shape[0]
     cdef int N1 = N+1;
     cdef int N2 = N**2;
@@ -123,7 +135,7 @@ def main_func():
             tmpxq = np.dot(store[...,i],xq[:,i]) #possible optimization
             xq[:,i+1] = tmpxq
             
-        diff[n1] = norm(data_c[1:,1:] - xq[1:,1:])   
+        diff[n1] = norm(data_c_in[1:,1:] - xq[1:,1:])   
 
     #%% Initialize oldsum 
     cdef double [::1,:,:] oldsum = np.zeros([N1,N1,lenreading], dtype = np.float64, order = 'F')
@@ -323,7 +335,7 @@ def main_func():
             tmpxq = np.dot(store[...,i],xq[:,i]) #possible optimization
             xq[:,i+1] = tmpxq
             
-        diff[n1] = norm(data_c[1:,1:] - xq[1:,1:])
+        diff[n1] = norm(data_c_in[1:,1:] - xq[1:,1:])
         
         while diff[n1] > diff[n]:
             print('step halving')
