@@ -5,6 +5,7 @@ Created on Fri May  1 11:12:06 2020
 @author: TBE7
 """
 
+# How to run
 import pandas as pd
 import numpy as np
 t = pd.read_excel (r'Params.xlsx', header = None, sheet_name = 't')
@@ -14,10 +15,10 @@ data = data.to_numpy()
 u = np.ones((1, 61))
 lengthu = 1
 N = data.shape[0]
-N1 = N+1;
-N2 = N**2;
+N1 = N+1
+N2 = N**2
 
-
+#%% Parameters of the Vand de Vusse reactor
 k1, k2, k3 =5/6, 5/3, 1/6 
 f_ov_ss =4/7 
 caf =  10 
