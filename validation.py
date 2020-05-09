@@ -27,7 +27,7 @@ print('time elapsed in seconds is', time.time() - tstart)
 
 #%% running without data
 tstart = time.time()
-main_func(data, t, u, lengthu)
+main_func()
 print('time elapsed in seconds is', time.time() - tstart)
 
 #%% Parameters of the Vand de Vusse reactor
