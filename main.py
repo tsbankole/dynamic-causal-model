@@ -12,6 +12,7 @@ from scipy.interpolate import CubicSpline as cspline
 from multiprocessing import Pool, cpu_count
 from numpy.linalg import solve, inv
 from defrms import rms
+
 #%% Preliminaries
 loadeddata = np.load('file.npz')
 t, data, u, lengthu = loadeddata['t'], loadeddata['y'], loadeddata['u'], loadeddata['lenu'] 
