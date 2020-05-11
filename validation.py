@@ -20,6 +20,7 @@ N = data.shape[0]
 N1 = N+1
 N2 = N**2
 
+
 #%% running with data
 tstart = time.time()
 main_func(data, t, u, lengthu)
