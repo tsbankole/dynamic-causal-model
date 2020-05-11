@@ -93,7 +93,6 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     
     for i in range( numsetA ):
         ar_a[i] = <short> ( floor(setA[i]/N) + 1 )
-        #ar_a[i] = np.floor(setA[i]/N) + 1
         ac_a[i] = setA[i] - ( ar_a[i] - 1)*N + 1
         A[ar_a[i],ac_a[i]] = 0.5 #np.random.random()
         vecparams[i] = A[ar_a[i] ,ac_a[i]]
@@ -104,9 +103,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     for i in range( numsetB ):
         location = setB[i] -N2
         bi_b[i] = <short> ( floor(location/(N2+N)) )
-        ar_b[i] = <short> ( floor(( location )/N1 ) + 1 )
-        #bi_b[i] = np.floor(location/(N2+N))
-        #ar_b[i] = np.floor((location )/N1 ) + 1        
+        ar_b[i] = <short> ( floor(( location )/N1 ) + 1 )      
         ac_b[i] = location - N1*( ar_b[i] -1  )
         B[ar_b[i],ac_b[i],bi_b[i]] = 0.5 #np.random.random()
         vecparams[i + N2] = B[ar_b[i],ac_b[i],bi_b[i]]
@@ -131,7 +128,6 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     cdef double [::1,:] xq = np.empty((N1, lenreadpone), order = 'F')
     cdef double [::1,:,:] store = np.empty([N1, N1, lenreading], dtype = np.float64, order = 'F') 
     xq[:] = data
-    #store = np.empty([N1, N1, lenreading], dtype = np.float64) 
     
     for i in range( lenreading ):
         storetmp = expm(np.asarray( creatematrix(A, oldsum[...,i], t[i+1] -t[i], N1 ) ) )
@@ -140,7 +136,6 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     for i in range( lenreading ):
         tmpxq = np.dot(store[...,i],xq[:,i]) #possible optimization
         xq[:,i+1] = tmpxq
-    #print('first xq', np.linalg.norm(xq) )
 
     
     # %% M-step variables
@@ -237,16 +232,12 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
         count1 = numsetA - 1
         
         
-        #print(np.asarray( hwhole[::10, :]) )
-
-        
     #%% ybar Jbar   
         for i in range(1,lenreadpone ):
             df = data[:,i]- np.dot(store[...,i-1], data[:,i-1] ) #possible optimization
             for pp in range(N):
                 DF[i-1 + pp*lenreading] = df[pp+1]    # em for missing data could come here   
         
-        #print(np.asarray(DF[::20]))
         
         for i in range(numsetA + numsetB):
             tmp[i] = meanprior[i] - vecparams[i]
@@ -287,7 +278,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
         oldparams = vecparams
         vecparams = oldparams + updateparams;
         
-    #%% Update A,B
+        #%% Update A,B
         for i in range(numsetA):
             A[ar_a[i], ac_a[i]] = vecparams[i]
             
@@ -296,9 +287,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     
         for j in range( lenreading ): 
             tmpoldsum = np.asfortranarray( np.sum(B * Uvec[:,j,:] ,2) )
-            for pp in range(N1):
-                for qq in range(N1):
-                    oldsum[pp,qq,j] = tmpoldsum[pp,qq]
+            oldsum[...,j] = tmpoldsum
     
         for i in range( lenreading ):
             storetmp = expm(np.asarray( creatematrix(A, oldsum[...,i], t[i+1] -t[i], N1 ) ) )
@@ -310,14 +299,11 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
             
         diff[n1] = diffnorm( data[1:,1:], xq[1:,1:], N, lenreading ) 
         
-        #print(np.linalg.norm(xq) )
-        #print(diff[n1] )
 
         while diff[n1] > diff[n]:
             updateparams *= 0.6
             vecparams = oldparams + updateparams
-            #updateMatrices() 
-            #updateMatrices(A,B,ar_a,ac_a, numsetA, ar_b, ac_b, bi_b, numsetB, lenreading, N, N2, vecparams, diff, oldsum, xq, store, data)                       
+           
             for i in range(numsetA):
                 A[ar_a[i], ac_a[i]] = vecparams[i]
                 
@@ -326,9 +312,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
         
             for j in range( lenreading ): 
                 tmpoldsum = np.asfortranarray( np.sum(B * Uvec[:,j,:] ,2) )
-                for pp in range(N1):
-                    for qq in range(N1):
-                        oldsum[pp,qq,j] = tmpoldsum[pp,qq]
+                oldsum[...,j] = tmpoldsum
         
             for i in range( lenreading ):
                 storetmp = expm(np.asarray( creatematrix(A, oldsum[...,i], t[i+1] -t[i], N1 ) ) )
