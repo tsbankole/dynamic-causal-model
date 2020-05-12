@@ -7557,7 +7557,7 @@ __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_47, 2, (PyObject *(*)(char *)) __
  *             bi = bi_b[j]
  *             count1 = count1 + 1             # <<<<<<<<<<<<<<
  *             B_ar_ac_bi = B[ar,ac,bi]
- *             for pp in range(5):
+ *             for pp in range(szxrange):
  */
       __pyx_v_count1 = (__pyx_v_count1 + 1);
 
@@ -7565,7 +7565,7 @@ __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_47, 2, (PyObject *(*)(char *)) __
  *             bi = bi_b[j]
  *             count1 = count1 + 1
  *             B_ar_ac_bi = B[ar,ac,bi]             # <<<<<<<<<<<<<<
- *             for pp in range(5):
+ *             for pp in range(szxrange):
  *                 xrange[pp] = B_ar_ac_bi + ind[pp]*delta1
  */
       __pyx_t_36 = __pyx_v_ar;
@@ -7576,16 +7576,18 @@ __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_47, 2, (PyObject *(*)(char *)) __
       /* "main.pyx":318
  *             count1 = count1 + 1
  *             B_ar_ac_bi = B[ar,ac,bi]
- *             for pp in range(5):             # <<<<<<<<<<<<<<
+ *             for pp in range(szxrange):             # <<<<<<<<<<<<<<
  *                 xrange[pp] = B_ar_ac_bi + ind[pp]*delta1
  *             sliced[:] = oldsum[ar,ac,:]
  */
-      for (__pyx_t_52 = 0; __pyx_t_52 < 5; __pyx_t_52+=1) {
+      __pyx_t_50 = __pyx_v_szxrange;
+      __pyx_t_51 = __pyx_t_50;
+      for (__pyx_t_52 = 0; __pyx_t_52 < __pyx_t_51; __pyx_t_52+=1) {
         __pyx_v_pp = __pyx_t_52;
 
         /* "main.pyx":319
  *             B_ar_ac_bi = B[ar,ac,bi]
- *             for pp in range(5):
+ *             for pp in range(szxrange):
  *                 xrange[pp] = B_ar_ac_bi + ind[pp]*delta1             # <<<<<<<<<<<<<<
  *             sliced[:] = oldsum[ar,ac,:]
  *             for i in range(lenreading):
@@ -7596,7 +7598,7 @@ __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_47, 2, (PyObject *(*)(char *)) __
       }
 
       /* "main.pyx":320
- *             for pp in range(5):
+ *             for pp in range(szxrange):
  *                 xrange[pp] = B_ar_ac_bi + ind[pp]*delta1
  *             sliced[:] = oldsum[ar,ac,:]             # <<<<<<<<<<<<<<
  *             for i in range(lenreading):

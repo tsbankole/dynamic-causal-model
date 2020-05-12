@@ -4309,8 +4309,10 @@ __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_47, 2, (PyObject *(*)(char *)) __
       __pyx_t_64 = __pyx_v_ac;
       __pyx_t_65 = __pyx_v_bi;
       __pyx_v_B_ar_ac_bi = (*((double *) ( /* dim=2 */ ((char *) (((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_B.data + __pyx_t_36 * __pyx_v_B.strides[0]) ) + __pyx_t_64 * __pyx_v_B.strides[1]) )) + __pyx_t_65)) )));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">318</span>:             <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mf">5</span><span class="p">):</span></pre>
-<pre class='cython code score-0 '>      for (__pyx_t_52 = 0; __pyx_t_52 &lt; 5; __pyx_t_52+=1) {
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">318</span>:             <span class="k">for</span> <span class="n">pp</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">szxrange</span><span class="p">):</span></pre>
+<pre class='cython code score-0 '>      __pyx_t_50 = __pyx_v_szxrange;
+      __pyx_t_51 = __pyx_t_50;
+      for (__pyx_t_52 = 0; __pyx_t_52 &lt; __pyx_t_51; __pyx_t_52+=1) {
         __pyx_v_pp = __pyx_t_52;
 </pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">319</span>:                 <span class="nb">xrange</span><span class="p">[</span><span class="n">pp</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_ar_ac_bi</span> <span class="o">+</span> <span class="n">ind</span><span class="p">[</span><span class="n">pp</span><span class="p">]</span><span class="o">*</span><span class="n">delta1</span></pre>
 <pre class='cython code score-0 '>        __pyx_t_65 = __pyx_v_pp;

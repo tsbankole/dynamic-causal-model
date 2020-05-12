@@ -315,7 +315,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
             bi = bi_b[j]
             count1 = count1 + 1
             B_ar_ac_bi = B[ar,ac,bi]
-            for pp in range(5):
+            for pp in range(szxrange):
                 xrange[pp] = B_ar_ac_bi + ind[pp]*delta1
             sliced[:] = oldsum[ar,ac,:]
             for i in range(lenreading):
