@@ -18,6 +18,58 @@ from cython.parallel import prange
 cimport defrms
 from defrms cimport diffnorm
 from defrms cimport creatematrix
+import scipy.linalg.blas
+
+
+
+cdef extern from "r8lib.c":
+    void r8mat_print(int m, int n, double a[], char *title)
+    
+cdef extern from "matrix_exponential.c":
+    double *r8mat_expm1(int n, double a[])    
+    
+cdef extern from "f2pyptr.h":
+    void *f2py_pointer(object) except NULL
+
+ctypedef int dgemm_t(
+	char *transa, char *transb,
+	int *m, int *n, int *k,
+	double *alpha,
+	double *a, int *lda,
+	double *b, int *ldb,
+	double *beta,
+	double *c, int *ldc)
+
+# Since Scipy >= 0.12.0
+cdef dgemm_t *dgemm = <dgemm_t*>f2py_pointer(scipy.linalg.blas.dgemm._cpointer) 
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.nonecheck(False)
+@cython.cdivision(True)
+cdef inline double [:] expm_dgemm( double [:] inp1, double [:] inp2, int m ):
+    '''
+    to find expm(inp1) * inp2 where dim inp1 is n by n and dim inp2 is n by 1
+    '''
+    
+    cdef double [::1, :] vectomatrix  = np.empty((m,m), dtype = np.float64, order = 'F')
+    cdef double [:] output  = np.empty(m)
+    cdef double *aexpm
+    cdef Py_ssize_t row, col
+    cdef int k = m
+    cdef int n = 1
+    cdef double alpha = 1.0
+    cdef double beta = 0.0
+    cdef int lda = m, ldb = m, ldc = m
+    
+    aexpm = r8mat_expm1(m, &inp1[0]) 
+    for col in range(m):
+        for row in range(m):
+            vectomatrix[row, col] = aexpm[row + col*m]      
+    dgemm("N", "N", &m, &n, &k, &alpha, &vectomatrix[0,0], &lda, &inp2[0], &ldb, &beta, &output[0], &ldc)
+    return output	
+
 '''
 cdef np.ndarray[DTYPE_t, ndim=2] 
 
@@ -111,7 +163,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     #%% Initialize oldsum 
     cdef double [::1,:,:] oldsum = np.zeros([N1,N1,lenreading], dtype = np.float64, order = 'F')
     cdef double [:] sliced = np.empty(lenreading, dtype = np.float64 )
-    cdef double [:,::1] tmpAdeloldsum = np.empty([N1, N1], order = 'C')
+    cdef double [:] tmpAdeloldsum = np.empty([N1**2], dtype = np.float64 )
     Uvec = np.transpose(np.asarray(u)[..., np.newaxis],[2, 1, 0])
     
     for j in range( lenreading ): 
@@ -193,10 +245,10 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
                 delT = t[i+1] - t[i]
                 for pp in range(N1):
                     for qq in range(N1):
-                        tmpAdeloldsum[pp,qq] = delT * ( A[pp,qq] + oldsum[pp,qq,i] )
+                        tmpAdeloldsum[pp + qq*N1] = delT * ( A[pp,qq] + oldsum[pp,qq,i] )
                 for g in range(szxrange):
-                    tmpAdeloldsum[ar,ac] = delT * ( xrange[g] + oldsum[ar,ac,i] )
-                    aa = np.dot( expm(np.asarray( tmpAdeloldsum) ), data[:,i] ) #possible optimization
+                    tmpAdeloldsum[ar + ac*N1] = delT * ( xrange[g] + oldsum[ar,ac,i] )
+                    aa = expm_dgemm( tmpAdeloldsum, data[:,i], N1 ) #possible optimization
                     tbspline[:,g] = aa
                 for row in range(1, N1 ):
                     h[row,i] = cspline(np.asarray( xrange ), np.asarray( tbspline[row,:])).derivative()(Arac)          
@@ -219,10 +271,10 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
                 sum_uB[:] = oldsum[:,:,i]
                 for pp in range(N1):
                     for qq in range(N1):
-                        tmpAdeloldsum[pp,qq] = delT * ( A[pp,qq] + sum_uB[pp,qq] )                
+                        tmpAdeloldsum[pp + qq*N1] = delT * ( A[pp,qq] + sum_uB[pp,qq] )                 
                 for g in range(szxrange):
-                    tmpAdeloldsum[ar,ac] = delT * ( A[ar,ac] + (sliced[i] + u[bi,i]*ind[g]*delta1) )  
-                    aa = np.dot( expm(np.asarray(tmpAdeloldsum)) , data[:,i] ) #possible optimization
+                    tmpAdeloldsum[ar + ac*N1] = delT * ( A[ar,ac] + (sliced[i] + u[bi,i]*ind[g]*delta1) )  
+                    aa = expm_dgemm( tmpAdeloldsum, data[:,i], N1 )
                     tbspline[:,g] = aa
                 for row in range(1, N1 ):
                     h1[row,i] =  cspline(xrange, tbspline[row,:]).derivative()(B_ar_ac_bi)

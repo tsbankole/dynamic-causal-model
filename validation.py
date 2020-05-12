@@ -6,7 +6,7 @@ Created on Fri May  1 11:12:06 2020
 """
 
 # How to run
-from main import main_func
+from main import main_func_cython
 import time
 import pandas as pd
 import numpy as np
