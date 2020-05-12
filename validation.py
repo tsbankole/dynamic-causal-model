@@ -23,12 +23,12 @@ N2 = N**2
 
 #%% running with data
 tstart = time.time()
-main_func(data, t, u, lengthu)
+main_func_cython(data, t, u, lengthu)
 print('time elapsed in seconds is', time.time() - tstart)
 
 #%% running without data
 tstart = time.time()
-main_func()
+main_func_cython()
 print('time elapsed in seconds is', time.time() - tstart)
 
 #%% Parameters of the Vand de Vusse reactor
