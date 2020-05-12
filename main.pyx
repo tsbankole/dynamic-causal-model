@@ -19,6 +19,7 @@ cimport defrms
 from defrms cimport diffnorm
 from defrms cimport creatematrix
 import scipy.linalg.blas
+from cython.view cimport array as cvarray
 
 
 
@@ -70,6 +71,55 @@ cdef inline double [:] expm_dgemm( double [:] inp1, double [:] inp2, int m ):
     dgemm("N", "N", &m, &n, &k, &alpha, &vectomatrix[0,0], &lda, &inp2[0], &ldb, &beta, &output[0], &ldc)
     return output	
 
+@cython.boundscheck(False)
+@cython.cdivision(True)
+cpdef double spline_diff_carr( double [:] x, double [:] y, int n):
+    
+    cdef int i,j
+    
+    cdef double [:] a = np.empty(n+1, dtype = np.float64)
+    a[:] = y
+        
+    cdef:
+        double [:] d = cvarray(shape=(n,), itemsize=sizeof(double), format="d")
+        double [:] b = cvarray(shape=(n,), itemsize=sizeof(double), format="d")
+        double [:] h = cvarray(shape=(n,), itemsize=sizeof(double), format="d")
+        double [:] alpha = cvarray(shape=(n,), itemsize=sizeof(double), format="d")
+    
+    for i in range(n):
+        h[i] = x[i+1] - x[i]
+        
+    for i in range(1, n):
+        alpha[i] = (3/h[i])*(a[i+1] - a[i]) - (3/h[i-1])*(a[i] - a[i-1])
+        
+    
+    cdef double [:] c = cvarray(shape=(n+1,), itemsize=sizeof(double), format="d")
+    cdef double [:] l = cvarray(shape=(n+1,), itemsize=sizeof(double), format="d")
+    cdef double [:] mu = cvarray(shape=(n+1,), itemsize=sizeof(double), format="d")
+    cdef double [:] z = cvarray(shape=(n+1,), itemsize=sizeof(double), format="d")
+    
+    
+    
+    l[0] = 1
+    z[0] = 0
+    mu[0] = 0
+    
+    for i in range(1,n):
+        l[i] = 2*(x[i+1] - x[i-1]) - h[i-1]*mu[i-1]
+        mu[i] = h[i]/l[i]
+        z[i] = (alpha[i] - h[i-1]*z[i-1])/l[i]
+        
+    l[-1] = 1
+    z[-1] = 0
+    c[-1] = 0
+    
+    for j in range(n-1, -1, -1):
+        c[j] = z[j] - mu[j]*c[j+1]
+        b[j] =  (a[j+1] - a[j])/h[j] - (h[j]*(c[j+1] + 2*c[j]))/3
+        d[j] = ( c[j+1] - c[j] )/3/h[j]
+    
+    
+    return b[n/2]
 '''
 cdef np.ndarray[DTYPE_t, ndim=2] 
 
@@ -204,6 +254,7 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
     cdef double[:] DF = np.copy(hwhole[:,1])
     
     cdef short span = 2
+    cdef int span2 = span**2
     cdef double delta = 0.01
     cdef double delta1 = delta
     cdef short [:] ind = np.arange(-span, span + 1 , dtype = np.int16)
@@ -251,7 +302,8 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
                     aa = expm_dgemm( tmpAdeloldsum, data[:,i], N1 ) #possible optimization
                     tbspline[:,g] = aa
                 for row in range(1, N1 ):
-                    h[row,i] = cspline(np.asarray( xrange ), np.asarray( tbspline[row,:])).derivative()(Arac)          
+                    #h[row,i] = cspline(np.asarray( xrange ), np.asarray( tbspline[row,:])).derivative()(Arac) 
+                    h[row,i] = spline_diff_carr( xrange, tbspline[row,:], span2 ) 
             hwholetmp = np.reshape(h[1:,], [sz,])
             for pp in range(sz):
                 hwhole[pp,count] = hwholetmp[pp]
@@ -277,7 +329,8 @@ cpdef main_func_cython(data_c_in = None, t_in = None, u_in = None, lengthu_in = 
                     aa = expm_dgemm( tmpAdeloldsum, data[:,i], N1 )
                     tbspline[:,g] = aa
                 for row in range(1, N1 ):
-                    h1[row,i] =  cspline(xrange, tbspline[row,:]).derivative()(B_ar_ac_bi)
+                    #h1[row,i] =  cspline(xrange, tbspline[row,:]).derivative()(B_ar_ac_bi)
+                    h1[row,i] = spline_diff_carr( xrange, tbspline[row,:], span2 ) 
             hwholetmp = np.reshape(h1[1:,:],[sz,])
             for pp in range(sz):
                 hwhole[pp,count1] = hwholetmp[pp]
