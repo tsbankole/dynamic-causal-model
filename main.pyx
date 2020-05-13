@@ -13,7 +13,8 @@ from scipy.linalg import expm
 from scipy.interpolate import UnivariateSpline as spline
 from scipy.interpolate import CubicSpline as cspline
 from multiprocessing import Pool, cpu_count
-from numpy.linalg import solve, inv
+from numpy.linalg import inv
+from scipy.linalg.lapack import dgesv as solve
 from cython.parallel import prange
 cimport defrms
 from defrms cimport diffnorm
